@@ -1,0 +1,12 @@
+{"id":"dev.test.ctl","name":"控件","version_name":"1.0.0","description":"测试：全部控件类型 + on control + on data","permissions":["network:apps.spare.cool"],
+"requests":[{"name":"cfg","kind":"http_json","url":"https://apps.spare.cool/x/kv/a","fields":{"k1":"a"}},{"name":"setctl","kind":"control_set"}],
+"controls":[
+ {"id":"sw","type":"switch","label":"开关","default":true},
+ {"id":"sl","type":"slider","label":"滑块","unit":"分","min":-10,"max":10,"step":5,"default":5},
+ {"id":"st","type":"stepper","label":"步进","min":1,"max":3},
+ {"id":"pk","type":"picker","label":"选项","options":["一","二","三"],"default":2,"style":"menu"},
+ {"id":"tx","type":"text","label":"文字","max":12,"default":"你好","hint":"提示"},
+ {"id":"lb","type":"label","label":"只读","default":"0"},
+ {"id":"bt","type":"button","label":"按钮","confirm":"确定？"}
+],
+"ui":[{"id":"o","type":"text","x":0,"y":80,"w":540,"h":60,"size":48,"align":"center","text":"-"}]}

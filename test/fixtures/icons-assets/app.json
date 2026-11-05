@@ -1,0 +1,13 @@
+{"id":"dev.test.icons","name":"图标资源","version_name":"1.0.0","data_version":2,"description":"测试：图标和 5 种 PNG 资源","permissions":[],"requests":[],
+"ui":[
+ {"id":"box","type":"rect","x":10,"y":10,"w":520,"h":180,"radius":12,"border":2,"gray":90,"children":[
+   {"id":"i1","type":"image","x":10,"y":10,"w":32,"h":20,"src":"a_rgba.png"},
+   {"id":"i2","type":"image","x":60,"y":10,"w":16,"h":16,"src":"b_rgb.png"},
+   {"type":"image","x":100,"y":10,"w":24,"h":10,"src":"c_gray.png"},
+   {"type":"image","x":140,"y":10,"w":20,"h":12,"src":"d_la.png","hidden":true},
+   {"type":"image","x":180,"y":10,"w":30,"h":14,"src":"e_pal.png"},
+   {"id":"phone","type":"image","x":220,"y":10,"w":64,"h":64},
+   {"id":"lbl","type":"text","x":10,"y":100,"w":500,"h":40,"size":30,"bold":true,"align":"right","text":12345}
+ ]},
+ {"id":"pb","type":"bar","x":20,"y":196,"w":500,"h":6,"value":40,"track":30}
+]}

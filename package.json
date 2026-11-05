@@ -1,0 +1,16 @@
+{
+  "name": "@spare-glass/sdk",
+  "version": "0.1.0",
+  "description": "Spare 眼镜应用 SDK：SpareScript 编译器、.spa 打包签名、spare 命令行",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": { "spare": "src/cli.ts" },
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src", "LICENSE", "README.md"],
+  "engines": { "node": ">=23.6" },
+  "scripts": {
+    "parity": "node test/parity.mjs"
+  },
+  "repository": { "type": "git", "url": "https://github.com/spare-glass/sdk.git" },
+  "homepage": "https://github.com/spare-glass/sdk"
+}
