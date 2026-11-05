@@ -1,16 +1,22 @@
 #!/usr/bin/env node
-// spare：Spare 眼镜应用命令行。  spare new <目录> | spare check <目录> | spare build <目录> [-o 输出.spa] [--key 密钥文件] | spare keygen [密钥文件]
+// spare：Spare 眼镜应用命令行。  spare new | check | build | install | qr | keygen（见 USAGE）
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, chmodSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { homedir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { SpacError } from './compiler.ts';
 import { build, ed25519, type AppFiles } from './pack.ts';
+import { encodeQr, qrToTerminal } from './qr.ts';
+import { serveSideload } from './sideload.ts';
 
 const USAGE = `用法：
   spare new <目录>                         新建一个最小应用（计数器）
   spare check <目录>                       只检查：编译 + 清单校验，不写文件
   spare build <目录> [-o 输出.spa] [--key 密钥文件]   编译并签名成 .spa
+  spare install <目录> [--qr] [--keep] [--host IP] [--port N] [--key 密钥文件]
+                                           构建后在局域网里临时提供，终端显示二维码；
+                                           用 Spare App「工坊 › 创作 › 扫码安装」扫一下就装到眼镜
+  spare qr <文字>                           把任意文字画成终端二维码
   spare keygen [密钥文件]                   生成开发者密钥（默认 ~/.spare/dev_ed25519.key）
 
 规范：https://github.com/spare-glass/spec`;
@@ -59,7 +65,7 @@ on crown(d) { n = clamp(n + d, -999, 999); text(big, n); save(); }
 on click()  { n = 0; text(big, n); anim_opa(big, 80, 255, 300); save(); }
 `;
 
-function main(argv: string[]) {
+async function main(argv: string[]) {
   const [cmd, ...rest] = argv;
   const opt = (flag: string) => { const i = rest.indexOf(flag); return i >= 0 ? rest[i + 1] : undefined; };
   if (cmd === 'keygen') {
@@ -84,14 +90,29 @@ function main(argv: string[]) {
       writeFileSync(out, pkg);
       console.log(JSON.stringify({ ...info, out }));
     }
+  } else if (cmd === 'install' && rest[0]) {
+    const { pkg, info } = build(readApp(rest[0]), seedFrom(opt('--key') || defaultKey()));
+    const keep = rest.includes('--keep');
+    const sl = await serveSideload({
+      pkg, id: info.id, name: info.name, keep, host: opt('--host'), port: opt('--port') ? Number(opt('--port')) : undefined,
+      onDownload: from => console.log(`✓ ${from} 已下载（${pkg.length} 字节），在手机上确认安装`),
+    });
+    console.log(qrToTerminal(encodeQr(sl.link)));
+    console.log(`\n${info.name}（${info.id}）${pkg.length} 字节  sha256 ${sl.sha256.slice(0, 16)}…`);
+    console.log(`用 Spare App「工坊 › 创作 › 扫码安装」扫上面的码（手机和电脑要在同一个 Wi-Fi，App 要打开开发者模式）。`);
+    console.log(`链接：${sl.link}`);
+    console.log(keep ? '按 Ctrl+C 结束。' : '下载一次后自动结束；10 分钟没人扫也会结束。');
+    process.once('SIGINT', () => sl.close());
+    const r = await sl.done;
+    if (r === 'timeout') { console.error('spare: 10 分钟没人下载，已结束'); process.exitCode = 1; }
+  } else if (cmd === 'qr' && rest.length) {
+    console.log(qrToTerminal(encodeQr(rest.join(' '))));
   } else {
     console.log(USAGE);
     process.exitCode = cmd ? 2 : 0;
   }
 }
 
-try {
-  main(process.argv.slice(2));
-} catch (e) {
-  if (e instanceof SpacError) { console.error(`spare: ${e.message}`); process.exitCode = 1; } else throw e;
-}
+main(process.argv.slice(2)).catch(e => {
+  if (e instanceof SpacError || e?.code === 'EADDRINUSE' || /局域网/.test(e?.message)) { console.error(`spare: ${e.message}`); process.exitCode = 1; } else throw e;
+});
